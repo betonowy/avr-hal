@@ -56,6 +56,7 @@ struct Args {
     /// * nano
     /// * leonardo
     /// * micro
+    /// * mega1280
     /// * mega2560
     /// * diecimila
     /// * promicro

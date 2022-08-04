@@ -13,6 +13,7 @@ pub fn get_board(board: &str) -> Option<Box<dyn Board>> {
         "nano" => Box::new(ArduinoNano),
         "leonardo" => Box::new(ArduinoLeonardo),
         "micro" => Box::new(ArduinoMicro),
+        "mega1280" => Box::new(ArduinoMega1280),
         "mega2560" => Box::new(ArduinoMega2560),
         "diecimila" => Box::new(ArduinoDiecimila),
         "promicro" => Box::new(SparkFunProMicro),
@@ -141,16 +142,14 @@ impl Board for ArduinoLeonardo {
     fn needs_reset(&self) -> Option<&str> {
         let a = self.guess_port();
         match a {
-            Some(Ok(name)) => {
-                match serialport::new(name.to_str().unwrap(), 1200).open() {
-                    Ok(_) => {
-                        std::thread::sleep(core::time::Duration::from_secs(1));
-                        None
-                    },
-                    Err(_) => Some("Reset the board by pressing the reset button once.")
+            Some(Ok(name)) => match serialport::new(name.to_str().unwrap(), 1200).open() {
+                Ok(_) => {
+                    std::thread::sleep(core::time::Duration::from_secs(1));
+                    None
                 }
+                Err(_) => Some("Reset the board by pressing the reset button once."),
             },
-            _ => Some("Reset the board by pressing the reset button once.")
+            _ => Some("Reset the board by pressing the reset button once."),
         }
     }
 
@@ -169,6 +168,33 @@ impl Board for ArduinoLeonardo {
             (0x2341, 0x8036),
             (0x2A03, 0x0036),
             (0x2A03, 0x8036),
+        ]))
+    }
+}
+
+struct ArduinoMega1280;
+
+impl Board for ArduinoMega1280 {
+    fn display_name(&self) -> &str {
+        "Arduino Mega 1280"
+    }
+
+    fn needs_reset(&self) -> Option<&str> {
+        None
+    }
+
+    fn avrdude_options(&self) -> avrdude::AvrdudeOptions {
+        avrdude::AvrdudeOptions {
+            programmer: "arduino",
+            partno: "atmega1280",
+            baudrate: Some(57600),
+            do_chip_erase: false,
+        }
+    }
+
+    fn guess_port(&self) -> Option<anyhow::Result<std::path::PathBuf>> {
+        Some(find_port_from_vid_pid_list(&[
+            (0x2341, 0x00DF),
         ]))
     }
 }
